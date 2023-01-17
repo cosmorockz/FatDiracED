@@ -52,6 +52,55 @@ for m in MM:
         StatesAll[k]['lambda'] = la
         k += 1
 
+TotalStates = k + 1 # Total number of states
+
+# Finding the allowed combinations for Coulomb interaction
+
+CoulombIntIndices = [] # All the allowed four-state 
+# indices for Coulomb interaction
+
+for key1, value1 in StatesAll.items():
+    for key2, value2 in StatesAll.items():
+        for key3, value3 in StatesAll.items():
+            for key4, value4 in StatesAll.items():
+                m1 = value1['m']
+                m2 = value2['m']
+                m3 = value3['m']
+                m4 = value4['m']
+                if abs(m1+m2+m3+m4) <= 1e-8:
+                    CoulombIntIndices.append((key1,key2,key3,key4))
+
+
+def CoulombStrength(ind1, ind2, ind3, ind4):
+
+    state1 = StatesAll[ind1]
+    state2 = StatesAll[ind2]
+    state3 = StatesAll[ind3]
+    state4 = StatesAll[ind4]
+
+    n1 = state1['n']
+    n2 = state2['n']
+    n3 = state3['n']
+    n4 = state4['n']
+
+    la1 = state1['lambda']
+    la2 = state2['lambda']
+    la3 = state3['lambda']
+    la4 = state4['lambda']
+
+    m1 = state1['m']
+    m2 = state2['m']
+    m3 = state3['m']
+    m4 = state4['m']
+
+    l1 = n1 + Q - 0.5
+    l2 = n2 + Q - 0.5
+    l3 = n3 + Q - 0.5
+    l4 = n4 + Q - 0.5
+
+    return
+
+
 
 
 

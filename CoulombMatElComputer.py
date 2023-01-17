@@ -4,10 +4,12 @@ Coulomb interactions. Given any Dirac cutoff (specifies )
 '''
 
 import numpy as np
+import concurrent.futures
 from sympy.physics.wigner import wigner_3j
 
 cutoff = 1 # Landau level index cutoff
 Q = 2 # Dirac magnetic Monopole charge
+StrengthTol = 1e-8
 
 l_max = Q - 0.5 + cutoff # Maximum Landau level for the given Magnetic
 # field and "cutoff"
@@ -74,6 +76,9 @@ for key1, value1 in StatesAll.items():
 
 def CoulombStrength(Ind):
 
+    # Given the Indices for four operators, this function
+    # computes the Coulomb interaction strength between them
+
     ind1,ind2, ind3, ind4 = Ind
 
     state1 = StatesAll[ind1]
@@ -115,11 +120,50 @@ def CoulombStrength(Ind):
                                 * wigner_3j(l2,l,l3,m2,-m,-m3) \
                                     * wigner_3j(l2,l,l3,round(-Q-0.5,1),0,round(Q+0.5,1))
             
-            # print(UpUp)
+            UpDown = (-1)**(int(Q+0.5-m1-m+l1+l+l4+Q-0.5-m2+l2+l+l3)) \
+                * np.sqrt((2*l1+1)*(2*l+1)*(2*l4+1)/(4*np.pi)) \
+                    * np.sqrt((2*l2+1)*(2*l+1)*(2*l3+1)/(4*np.pi)) \
+                        * wigner_3j(l1,l,l4,m1,m,m4) \
+                            * wigner_3j(l1,l,l4,round(-Q-0.5,1),0,round(Q+0.5,1)) \
+                                * wigner_3j(l2,l,l3,m2,-m,-m3) \
+                                    * wigner_3j(l2,l,l3,round(-Q+0.5,1),0,round(Q-0.5,1))
             
-            IntStr += UpUp
+            DownUp = (-1)**(int(Q-0.5-m1-m+l1+l+l4+Q+0.5-m2+l2+l+l3)) \
+                * np.sqrt((2*l1+1)*(2*l+1)*(2*l4+1)/(4*np.pi)) \
+                    * np.sqrt((2*l2+1)*(2*l+1)*(2*l3+1)/(4*np.pi)) \
+                        * wigner_3j(l1,l,l4,m1,m,-m4) \
+                            * wigner_3j(l1,l,l4,round(-Q+0.5,1),0,round(Q-0.5,1)) \
+                                * wigner_3j(l2,l,l3,m2,-m,-m3) \
+                                    * wigner_3j(l2,l,l3,round(-Q-0.5,1),0,round(Q+0.5,1))
+            
+            DownDown = (-1)**(int(Q-0.5-m1-m+l1+l+l4+Q-0.5-m2+l2+l+l3)) \
+                * np.sqrt((2*l1+1)*(2*l+1)*(2*l4+1)/(4*np.pi)) \
+                    * np.sqrt((2*l2+1)*(2*l+1)*(2*l3+1)/(4*np.pi)) \
+                        * wigner_3j(l1,l,l4,m1,m,-m4) \
+                            * wigner_3j(l1,l,l4,round(-Q+0.5,1),0,round(Q-0.5,1)) \
+                                * wigner_3j(l2,l,l3,m2,-m,-m3) \
+                                    * wigner_3j(l2,l,l3,round(-Q+0.5,1),0,round(Q-0.5,1))
+            
+            IntStr += UpUp + la2*la3*UpDown + la1*la4*DownUp + la1*la2*la3*la4*DownDown
 
-    return IntStr
+    return Ind,IntStr
+
+NZIntIndices = [] # Indices for Non-zero Coulomb interaction Strength
+IntStrength = [] # The corresponding interaction strength
+
+with concurrent.futures.ProcessPoolExecutor() as executor:
+    results = executor.map(CoulombStrength,CoulombIntIndices)
+
+    for result in results:
+        ind, strength = result
+        if abs(float(strength)) > StrengthTol:
+            NZIntIndices.append(ind)
+            IntStrength.append(strength)
+
+
+np.savetxt("CoulombIntMatElemQ"+str(Q)+"cutoff"+str(cutoff)+".dat",\
+    np.c_[NZIntIndices,IntStrength],fmt="%d,%d,%d,%d,%.8f")
+
 
 
 

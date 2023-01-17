@@ -31,20 +31,25 @@ def Bset(Q,cutoff,m):
     return levels
 
 
-MM = [-l_max + i for i in range(2*l_max + 1)] # All the allowed m's
+MM = [-l_max + i for i in range(int(2*l_max + 1))] # All the allowed m's
+
+
+# Making a Dictionary for all the allowed states
 
 StatesAll = {} # Dictionary of all the allowed states
 
 k = 0 # Key for the dictionary
+
+
 for m in MM:
     AllowedLevels = Bset(Q,cutoff,m)
     for level in AllowedLevels:
         la = np.sign(level) # Lambda
         n = np.abs(level) # Landau level index
-        StatesAll[str(k)] = {}
-        StatesAll[str(k)]['m'] = m 
-        StatesAll[str(k)]['n'] = n 
-        StatesAll[str(k)]['lambda'] = la
+        StatesAll[k] = {}
+        StatesAll[k]['m'] = m 
+        StatesAll[k]['n'] = n 
+        StatesAll[k]['lambda'] = la
         k += 1
 
 

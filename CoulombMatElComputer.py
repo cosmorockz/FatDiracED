@@ -4,9 +4,10 @@ Coulomb interactions. Given any Dirac cutoff (specifies )
 '''
 
 import numpy as np
+from sympy.physics.wigner import wigner_3j
 
 cutoff = 1 # Landau level index cutoff
-Q = 4 # Dirac magnetic Monopole charge
+Q = 2 # Dirac magnetic Monopole charge
 
 l_max = Q - 0.5 + cutoff # Maximum Landau level for the given Magnetic
 # field and "cutoff"
@@ -71,7 +72,9 @@ for key1, value1 in StatesAll.items():
                     CoulombIntIndices.append((key1,key2,key3,key4))
 
 
-def CoulombStrength(ind1, ind2, ind3, ind4):
+def CoulombStrength(Ind):
+
+    ind1,ind2, ind3, ind4 = Ind
 
     state1 = StatesAll[ind1]
     state2 = StatesAll[ind2]
@@ -88,17 +91,35 @@ def CoulombStrength(ind1, ind2, ind3, ind4):
     la3 = state3['lambda']
     la4 = state4['lambda']
 
-    m1 = state1['m']
-    m2 = state2['m']
-    m3 = state3['m']
-    m4 = state4['m']
+    m1 = round(state1['m'],1)
+    m2 = round(state2['m'],1)
+    m3 = round(state3['m'],1)
+    m4 = round(state4['m'],1)
 
-    l1 = n1 + Q - 0.5
-    l2 = n2 + Q - 0.5
-    l3 = n3 + Q - 0.5
-    l4 = n4 + Q - 0.5
+    l1 = round(n1 + Q - 0.5,1)
+    l2 = round(n2 + Q - 0.5,1)
+    l3 = round(n3 + Q - 0.5,1)
+    l4 = round(n4 + Q - 0.5,1)
 
-    return
+    IntStr = 0 # Interaction Strength
+
+    for l in range(int(min(l1+l4,l2+l3))):
+        # print(l)
+        for m in range(-l,l+1):
+        
+            UpUp = (-1)**(int(Q+0.5-m1-m+l1+l+l4+Q+0.5-m2+l2+l+l3)) \
+                * np.sqrt((2*l1+1)*(2*l+1)*(2*l4+1)/(4*np.pi)) \
+                    * np.sqrt((2*l2+1)*(2*l+1)*(2*l3+1)/(4*np.pi)) \
+                        * wigner_3j(l1,l,l4,m1,m,-m4) \
+                            * wigner_3j(l1,l,l4,round(-Q-0.5,1),0,round(Q+0.5,1)) \
+                                * wigner_3j(l2,l,l3,m2,-m,-m3) \
+                                    * wigner_3j(l2,l,l3,round(-Q-0.5,1),0,round(Q+0.5,1))
+            
+            # print(UpUp)
+            
+            IntStr += UpUp
+
+    return IntStr
 
 
 

@@ -3,35 +3,8 @@ Coulomb interactions. Given any Dirac cutoff (specifies )
 
 '''
 
-import numpy as np
-import concurrent.futures
+from header import *
 from sympy.physics.wigner import wigner_3j
-
-cutoff = 1 # Landau level index cutoff
-Q = 2 # Dirac magnetic Monopole charge
-StrengthTol = 1e-8
-
-l_max = Q - 0.5 + cutoff # Maximum Landau level for the given Magnetic
-# field and "cutoff"
-
-def Bset(Q,cutoff,m):
-    # Set of quantum numbers if magentic 
-    # field and cutoff is specified for a given m
-    levels = []
-    if ((Q*2) % 2) < 1e-8:
-#         M = max(int(abs(m)+0.5),)
-        for i in range(-cutoff,cutoff+1):
-            l = Q + np.abs(i) - 1/2
-            if ((np.abs(m)*2) % 2) > 0.999:
-                if np.abs(m) <= np.abs(l):
-                    levels.append(i)
-    else:
-        for i in range(-cutoff,cutoff+1):
-            l = Q + np.abs(i) - 1/2
-            if ((np.abs(m)*2) % 2) < 1e-8:
-                if np.abs(m) <= np.abs(l):
-                    levels.append(i)
-    return levels
 
 
 MM = [-l_max + i for i in range(int(2*l_max + 1))] # All the allowed m's

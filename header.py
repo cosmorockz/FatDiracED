@@ -9,7 +9,7 @@ import concurrent.futures
 
 
 cutoff = 1 # Landau level index cutoff
-Q = 3 # Dirac magnetic Monopole charge
+Q = 1 # Dirac magnetic Monopole charge
 StrengthTol = 1e-8
 
 l_max = Q - 0.5 + cutoff # Maximum Landau level for the given Magnetic

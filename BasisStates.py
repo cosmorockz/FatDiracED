@@ -99,7 +99,7 @@ for m in mm:
 data = {}
 AMlist = []
 ArraySize = len(MM)
-for n in range(0,LargestNumber+1):
+for n in range(0,LargestNumber):
     Number = ContainerArray(n,ArraySize)
     AngularMomentum = np.dot(MM,Number)
     AMlist.append(AngularMomentum)
@@ -107,7 +107,8 @@ for n in range(0,LargestNumber+1):
     if key in data:
         data[key].append(n)
     else:
-        data[key] = []
+        data[key] = [n]
+
 AMs = list(set(AMlist)) # List of all the total angular momentum
 
 del AMlist
@@ -120,12 +121,20 @@ except OSError:
     pass
 
 os.mkdir(AMfolder)
-    
+
+AMsector = [] # Angular momentum sector
+LenAMsector = [] # Total number of elements in each angular
+# momentum sector
 for key, values in data.items():
-    np.savetxt(AMfolder+"/AM"+str(round(float(key),1))+".dat", np.c_[values], fmt="%i") #, np.array(values).astype(int))
+    np.savetxt(AMfolder+"/AM"+str(round(float(key),1))\
+        +".dat", np.c_[values], fmt="%i") #, np.array(values).astype(int))
+    AMsector.append(float(key))
+    LenAMsector.append(len(values))
 
 del data
 gc.collect()
+
+np.savetxt(AMfolder+"/AMinfo.dat",np.c_[AMsector,LenAMsector],fmt="%.1f %i")
 
 
 

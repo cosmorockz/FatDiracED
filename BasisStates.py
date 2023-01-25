@@ -1,6 +1,7 @@
 '''This script finds and saves states with the same total
 angular momentum, for a given monopole charge and cutoff'''
 
+import itertools
 from header import *
 
 def decimalToBinary(n):
@@ -31,6 +32,11 @@ def BasisGenerator(Nlevels):
     for i in range(MaxN):
         basis.append(ContainerArray(i,Nlevels))
     return basis
+
+def BasisGeneratorNumberConserving(BasisElement):
+    # Given a basis element, this function generates all the other basis elements 
+    # of same angular momentum and same particle number
+    return list(set(list(itertools.permutations(BasisElement))))
 
 def Bset(Q,cutoff,m):
     # Set of quantum numbers if magentic field and cutoff is specified for a given m
@@ -95,46 +101,86 @@ for m in mm:
     for element in LevelSet:
         AllStates.append((element,m))
 
-# Finds and saves states with the same total angular momentum
-data = {}
-AMlist = []
-ArraySize = len(MM)
-for n in range(0,LargestNumber):
-    Number = ContainerArray(n,ArraySize)
-    AngularMomentum = np.dot(MM,Number)
-    AMlist.append(AngularMomentum)
-    key = str(AngularMomentum)
-    if key in data:
-        data[key].append(n)
-    else:
-        data[key] = [n]
+ParallelRoutes = pFactor * NCPU # Size of the parallized parts
 
-AMs = list(set(AMlist)) # List of all the total angular momentum
+def ChunkCreator(iPoint,fPoint,pRoutes):
+    # Given a starting point, ending point and the number of chunks,
+    # this function returns all the chunks
+    chunks = [] # Stores the starting and ending point 
+    #of all the chunks
+    chunkSize = int((fPoint - iPoint) / pRoutes)
+    for i in range(pRoutes):
+        chunkSP = 0 + i * chunkSize # Starting point of the chunk
+        chunkEP = chunkSP + chunkSize - 1 # Ending point of the chunk
+        chunks.append((chunkSP,chunkEP))
+    return chunks
 
-del AMlist
-gc.collect()
+AllChunks = ChunkCreator(0,LargestNumber,ParallelRoutes)
+# Contains all The parallelizable chunks
 
-AMfolder = "./DecimalAMCorrCutoff"+str(cutoff)+"Q"+str(Q)
-try:
-    shutil.rmtree(AMfolder)
-except OSError:
+BS_folder = "./BasisStates"+str(cutoff)+"Q"+str(Q)
+# Folder for the basis states
+
+# Checks if there is the Basis states folder and creates if
+# it does not exist
+if os.path.isdir(BS_folder) == True:
     pass
+else:
+    os.mkdir(BS_folder)
 
-os.mkdir(AMfolder)
+NP_folder = BS_folder + "/NParticles"+str(NParticles)
+# Folder inside BS_folder with a given particle number
 
-AMsector = [] # Angular momentum sector
-LenAMsector = [] # Total number of elements in each angular
-# momentum sector
-for key, values in data.items():
-    np.savetxt(AMfolder+"/AM"+str(round(float(key),1))\
-        +".dat", np.c_[values], fmt="%i") #, np.array(values).astype(int))
-    AMsector.append(float(key))
-    LenAMsector.append(len(values))
+if os.path.isdir(NP_folder) == True:
+    pass
+else:
+    os.mkdir(NP_folder)
 
-del data
-gc.collect()
+def AM_Assigner(chunk):
+    # Given a Chunk of decimal numbers, this function forms a
+    # dictionary of them on the basis of angular momentum.
+    # Then it Saves them in different files according
+    # to their angular momentum. Notice that
+    # this function only saves the decimal whose corresponding
+    # binary representation has the required particle number
 
-np.savetxt(AMfolder+"/AMinfo.dat",np.c_[AMsector,LenAMsector],fmt="%.1f %i")
+    chunkSP = chunk[0]
+    chunkEP = chunk[1]
+
+    data = {}
+
+    for n in range(chunkSP, chunkEP):
+        
+        BNumber = ContainerArray(n,TotalSPStates)
+        
+        if sum(BNumber) != NParticles:
+            continue
+        else:
+            key = str(np.dot(BNumber,MM))
+            if key in data:
+                data[key].append(n)
+            else:
+                data[key] = [n]
+    
+    for key, values in data.items():
+        
+        filename = NP_folder + "/AM" + str(round(float(key),1)) + ".dat"
+        # if os.path.isfile(filename) == True:
+        with lock:
+            with open(filename, 'a+') as fd:
+                for value in values:
+                    fd.write("%i \n" % value)
+        # else:
+        #     np.savetxt(filename,np.c_[values],fmt="%i")
+    
+    del data
+    gc.collect()
+
+    return None
+
+with concurrent.futures.ProcessPoolExecutor() as executor:
+    executor.map(AM_Assigner,AllChunks)
+        
 
 
 

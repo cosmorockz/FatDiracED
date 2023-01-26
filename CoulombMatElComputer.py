@@ -135,7 +135,7 @@ with concurrent.futures.ProcessPoolExecutor() as executor:
 
 
 np.savetxt("CoulombIntMatElemQ"+str(Q)+"cutoff"+str(cutoff)+".dat",\
-    np.c_[NZIntIndices,IntStrength],fmt="%d,%d,%d,%d,%.8f")
+    np.c_[NZIntIndices,IntStrength],fmt="%d    %d    %d    %d    %.8f")
 
 
 

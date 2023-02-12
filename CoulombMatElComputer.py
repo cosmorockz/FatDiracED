@@ -21,6 +21,8 @@ for m in MM:
     AllowedLevels = Bset(Q,cutoff,m)
     for level in AllowedLevels:
         la = np.sign(level) # Lambda
+        if la == 0:
+            la = 1
         n = np.abs(level) # Landau level index
         StatesAll[k] = {}
         StatesAll[k]['m'] = m 
@@ -28,7 +30,7 @@ for m in MM:
         StatesAll[k]['lambda'] = la
         k += 1
 
-TotalStates = k + 1 # Total number of states
+TotalStates = k # Total number of states
 
 # Finding the allowed combinations for Coulomb interaction
 
@@ -79,7 +81,19 @@ def CoulombStrength(Ind):
     l3 = round(n3 + Q - 0.5,1)
     l4 = round(n4 + Q - 0.5,1)
 
-    IntStr = 0 # Interaction Strength
+    # print(n1,n2,n3,n4)
+    # print(m1,m2,m3,m4)
+    # print(la1,la2,la3,la4)
+    # print(l1,l2,l3,l4)
+
+    # IntStr = 0 # Interaction Strength
+
+    # print(la1,la2,la3,la4)
+
+    UpUpInt = 0
+    UpDownInt = 0
+    DownUpInt = 0
+    DownDownInt = 0
 
     for l in range(int(min(l1+l4,l2+l3))):
         # print(l)
@@ -117,12 +131,24 @@ def CoulombStrength(Ind):
                                 * wigner_3j(l2,l,l3,m2,-m,-m3) \
                                     * wigner_3j(l2,l,l3,round(-Q+0.5,1),0,round(Q-0.5,1))
             
-            IntStr += UpUp + la2*la3*UpDown + la1*la4*DownUp + la1*la2*la3*la4*DownDown
+            
+            UpUpInt += UpUp
+            UpDownInt += UpDown
+            DownUpInt += DownUp
+            DownDownInt += DownDown
 
-    return Ind,IntStr
+    IntStr = (UpUpInt + la2*la3*UpDownInt + la1*la4*DownUpInt + la1*la2*la3*la4*DownDownInt) * np
+
+    return Ind,float(IntStr)
 
 NZIntIndices = [] # Indices for Non-zero Coulomb interaction Strength
 IntStrength = [] # The corresponding interaction strength
+
+# for Ind in CoulombIntIndices:
+#     ind, strength = CoulombStrength(Ind)
+#     if abs(strength) > 1e-8:
+#         NZIntIndices.append(ind)
+#         IntStrength.append(strength)
 
 with concurrent.futures.ProcessPoolExecutor() as executor:
     results = executor.map(CoulombStrength,CoulombIntIndices)

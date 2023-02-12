@@ -1,6 +1,12 @@
+from header import *
 from BasicOperators import *
 
 CoulombFile = "CoulombIntMatElemQ" + str(Q) + "cutoff" + str(cutoff) + ".dat"
+
+if os.path.exists(CoulombFile):
+    pass
+else:
+    os.system("python CoulombMatElComputer.py")
 
 Ind1, Ind2, Ind3, Ind4, CoulStrs = np.loadtxt(CoulombFile, usecols=(0,1,2,3,4), unpack=True)
 
@@ -26,8 +32,11 @@ def CoulombOperator(state):
                     continue
                 else:
                     sign1, stateF = CreationOperator(state2,Ind1[i])
-                    MatrixElements.append((stateF, sign1 * sign2 \
-                        * sign3 * sign4 * CoulStrs[i]))
+                    if stateF == -1:
+                        continue
+                    else:
+                        MatrixElements.append((stateF, intConst * sign1 * sign2 \
+                            * sign3 * sign4 * CoulStrs[i]))
     return MatrixElements
 
 

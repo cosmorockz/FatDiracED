@@ -14,8 +14,11 @@ def ChunkCreator(iPoint,fPoint,pRoutes):
     chunkSize = int((fPoint - iPoint) / pRoutes)
     for i in range(pRoutes):
         chunkSP = 0 + i * chunkSize # Starting point of the chunk
-        chunkEP = chunkSP + chunkSize - 1 # Ending point of the chunk
+        chunkEP = chunkSP + chunkSize # Ending point of the chunk
         chunks.append((chunkSP,chunkEP))
+    if chunkEP < fPoint:
+        chunkEP = fPoint
+        chunks[pRoutes-1][1] = chunkEP
     return chunks
 
 AllChunks = ChunkCreator(0,LargestNumber,ParallelRoutes)
@@ -31,13 +34,6 @@ if os.path.isdir(BS_folder) == True:
 else:
     os.mkdir(BS_folder)
 
-NP_folder = BS_folder + "/NParticles"+str(NParticles)
-# Folder inside BS_folder with a given particle number
-
-if os.path.isdir(NP_folder) == True:
-    pass
-else:
-    os.mkdir(NP_folder)
 
 def AM_Assigner(chunk):
     # Given a Chunk of decimal numbers, this function forms a
@@ -81,8 +77,16 @@ def AM_Assigner(chunk):
 
     return None
 
-with concurrent.futures.ProcessPoolExecutor() as executor:
-    executor.map(AM_Assigner,AllChunks)
+
+NP_folder = BS_folder + "/NParticles"+str(NParticles)
+# Folder inside BS_folder with a given particle number
+
+if os.path.isdir(NP_folder) == True:
+    pass
+else:
+    os.mkdir(NP_folder)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        executor.map(AM_Assigner,AllChunks)
         
 
 

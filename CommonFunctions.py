@@ -100,5 +100,10 @@ for m in mm:
     for element in LevelSet:
         AllStates.append((element,m))
 
+AllStatesInv = {} # Given the level and angular momentum,
+# this dictionary tell you the Position in the Fock basis
+for i, state in enumerate(AllStates):
+    AllStatesInv[state] = i
+
 
 

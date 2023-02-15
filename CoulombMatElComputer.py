@@ -137,7 +137,7 @@ def CoulombStrength(Ind):
             DownUpInt += DownUp
             DownDownInt += DownDown
 
-    IntStr = (UpUpInt + la2*la3*UpDownInt + la1*la4*DownUpInt + la1*la2*la3*la4*DownDownInt) * np
+    IntStr = (UpUpInt + la2*la3*UpDownInt + la1*la4*DownUpInt + la1*la2*la3*la4*DownDownInt)
 
     return Ind,float(IntStr)
 

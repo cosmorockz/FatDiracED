@@ -55,12 +55,12 @@ for l in LTotal:
     values = []
 
     # # Kinetic part
-    # for ind in AllInds:
-    #     ke = KineticOperator(ind)
-    #     rowInd = indDict[ind]
-    #     rows.append(rowInd)
-    #     cols.append(rowInd)
-    #     values.append(ke)
+    for ind in AllInds:
+        ke = KineticOperator(ind)
+        rowInd = indDict[ind]
+        rows.append(rowInd)
+        cols.append(rowInd)
+        values.append(ke)
     
     # Coulomb part
     for ind in AllInds:

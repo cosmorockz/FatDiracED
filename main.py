@@ -1,11 +1,24 @@
 import re
+import copy
 import glob
+
+import numpy as np
+
 from header import *
 from scipy import sparse
 import matplotlib.pyplot as plt
 from scipy.sparse.linalg import eigsh
 from KineticPart import KineticOperator
 from CoulombPart import CoulombOperator
+
+from header import intConst
+
+# print(intConst)
+
+# Your main code here
+# Ensure that you use intConst wherever it is needed in your main code
+
+
 
 
 BS_Folder = "./BasisStates"+str(cutoff)+"Q"+str(Q)+"/NParticles" \
@@ -97,8 +110,97 @@ for i in range(len(AllEigvals)):
         LL.append(LTotal[i])
         EE.append(eigval)
 
-plt.scatter(LL,EE)
+# plt.scatter(LL,EE)
+# plt.show()
+
+
+def organize_spectrum(spec_dict, tolerance=1e-8):
+    spec_dict = copy.deepcopy(spec_dict)
+
+    LzTots = sorted(spec_dict.keys())
+
+    for i, LzTot in enumerate(LzTots):
+        for eigval in spec_dict[LzTot]:
+            if eigval is not None:
+                for j in range(i + 1, len(LzTots)):
+                    for k, eigval_inner in enumerate(spec_dict[LzTots[j]]):
+                        if eigval_inner is not None:
+                            if abs(eigval - eigval_inner) < tolerance:
+                                spec_dict[LzTots[j]][k] = None
+                                break
+
+    for key, value in spec_dict.items():
+        filtered_list = [vals for vals in value if vals is not None]
+        spec_dict[key] = filtered_list
+    return spec_dict
+
+
+def lists_to_dict(LL, EE):
+    spec_dict = {}
+    for i, LzTot in enumerate(LL):
+        if LzTot not in spec_dict.keys():
+            spec_dict[LzTot] = []
+        spec_dict[LzTot].append(EE[i])
+
+    return spec_dict
+
+def dict_to_lists(spec_dict):
+
+    spec_list = []
+    L_list = []
+
+    for L in spec_dict.keys():
+        for spec in spec_dict[L]:
+            L_list.append(L)
+            spec_list.append(spec)
+
+    return L_list, spec_list
+
+spec_dict = lists_to_dict(LL, EE)
+
+spec_dict = organize_spectrum(spec_dict)
+
+L_list, spec_list = dict_to_lists(spec_dict)
+L_list = -np.array(L_list)
+
+directory = f'./Simulation_Data/cutoff_{cutoff}/Q_{Q}'
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+int_vs_kin = np.round(intConst / kinConst, 8)
+filename = f'spec_{int_vs_kin:.8f}.dat'
+full_filepath = os.path.join(directory, filename)
+np.savetxt(full_filepath, np.c_[L_list, spec_list])
+
+Plot_Directory = f'./Plots/cutoff_{cutoff}/Q_{Q}'
+if not os.path.exists(Plot_Directory):
+    os.makedirs(Plot_Directory)
+plot_filename = f'spec_{int_vs_kin:.8f}.pdf'
+plot_filename = os.path.join(Plot_Directory, plot_filename)
+
+
+plt.figure(1)
+plt.scatter(L_list, spec_list)
+plt.xlabel('L')
+plt.ylabel('$U_{int}$/$L_{kin}$')
+plt.grid(True)
+plt.savefig(plot_filename)
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

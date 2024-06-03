@@ -5,6 +5,9 @@ Coulomb interactions. Given any Dirac cutoff (specifies )
 
 from header import *
 from sympy.physics.wigner import wigner_3j
+from header import intConst
+
+print(intConst)
 
 
 MM = [-l_max + i for i in range(int(2*l_max + 1))] # All the allowed m's

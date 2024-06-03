@@ -1,5 +1,6 @@
 from header import *
 from BasicOperators import *
+from header import intConst
 
 CoulombFile = "CoulombIntMatElemQ" + str(Q) + "cutoff" + str(cutoff) + ".dat"
 
@@ -16,6 +17,8 @@ Ind3 = Ind3.astype(int)
 Ind4 = Ind4.astype(int)
 
 def CoulombOperator(state):
+    from header import intConst
+    # print("intConst inside CoulombOperator:", intConst)
     # 1, 2, 4, 3
     MatrixElements = []
     for i in range(len(Ind1)):
